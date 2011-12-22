@@ -13,3 +13,6 @@ to unloaded dr:
 
 to see that module loaded:
 	lsmod
+
+to see results:
+	cat /var/log/syslog
