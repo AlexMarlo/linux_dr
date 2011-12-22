@@ -1,0 +1,15 @@
+<<<<<<dir {first}>>>>>
+to make dr needed
+	make /usr/src/(linux headers)/ M=$PWD modules
+
+to clean dir:
+	make clean
+
+to loaded dr needed
+	sudo insmod nothing.ko
+
+to unloaded dr:
+	sudo rmmod nothing
+
+to see that module loaded:
+	lsmod
