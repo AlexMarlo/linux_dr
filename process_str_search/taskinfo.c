@@ -6,7 +6,13 @@
 #include <linux/types.h>	///pid_t
 #include <linux/mm.h>		///vm_area_struct
 
+MODULE_LICENSE("GPL");
+
 static int pid = 1;
+#define BUF_LEN 256
+char buf[BUF_LEN];
+int result;
+
 
 module_param(pid, int, 0000);
 MODULE_PARM_DESC(pid, "Process ID");
@@ -30,9 +36,16 @@ static int __init taskinfo_init(void)
 	a_mm = task->active_mm;
 	vma = task->active_mm->mmap;
 
+	buf[BUF_LEN - 1] = '\0';
+	result = access_process_vm( task, vma->vm_start, buf, BUF_LEN - 1, 0);
+
+	if(result < 0){
+		printk(KERN_INFO "taskinfo: cant read proc memory");
+		return 0;
+	}
+
 	mem_start = (u32)vma->vm_start;
 	mem_len = (u32)(vma->vm_end - vma->vm_start);
-
 	
 	///информация из дескриптора
 	printk(KERN_INFO "taskinfo: Process %d information:\n", task->pid);
@@ -41,18 +54,19 @@ static int __init taskinfo_init(void)
 
 	///области памяти
 	printk(KERN_INFO "taskinfo: START MEMORY AREA ADDRESS - 0x%08X\n", mem_start);
-	printk(KERN_INFO "taskinfo:   END MEMORY AREA ADDRESS - 0x%08X\n", (u32)vma->vm_end);
+	printk(KERN_INFO "taskinfo:  END MEMORY AREA ADDRESS - 0x%08X\n", (u32)vma->vm_end);
 	printk(KERN_INFO "taskinfo: MEMORY AREA LENGTH - 0x%08X\n", mem_len);
 
+	printk(KERN_INFO "taskinfo: %s\n", buf);
 	///адреса сегментов
 	printk(KERN_INFO "taskinfo: START CODE SEGMENT ADDRESS - 0x%08X\n", (u32)a_mm->start_code);
-	printk(KERN_INFO "taskinfo:   END CODE SEGMENT ADDRESS - 0x%08X\n", (u32)a_mm->end_code);
+	printk(KERN_INFO "taskinfo:  END CODE SEGMENT ADDRESS - 0x%08X\n", (u32)a_mm->end_code);
 	printk(KERN_INFO "taskinfo: CODE SEGMENT LENGTH - 0x%08X\n", (u32)(a_mm->end_code - a_mm->start_code));
 	printk(KERN_INFO "taskinfo: START DATA SEGMENT ADDRESS - 0x%08X\n", (u32)a_mm->start_data);
-	printk(KERN_INFO "taskinfo:   END DATA SEGMENT ADDRESS - 0x%08X\n", (u32)a_mm->end_data);
+	printk(KERN_INFO "taskinfo:  END DATA SEGMENT ADDRESS - 0x%08X\n", (u32)a_mm->end_data);
 	printk(KERN_INFO "taskinfo: DATA SEGMENT LENGTH - 0x%08X\n", (u32)(a_mm->end_data - a_mm->start_data));
 	printk(KERN_INFO "taskinfo: START BRK SEGMENT ADDRESS - 0x%08X\n", (u32)a_mm->start_brk);
-	printk(KERN_INFO "taskinfo:   END BRK SEGMENT ADDRESS - 0x%08X\n", (u32)a_mm->brk);
+	printk(KERN_INFO "taskinfo:  END BRK SEGMENT ADDRESS - 0x%08X\n", (u32)a_mm->brk);
 	printk(KERN_INFO "taskinfo: BRK SEGMENT LENGTH - 0x%08X\n", (u32)(a_mm->brk - a_mm->start_brk));
 
 	return 0;
@@ -65,5 +79,3 @@ static void __exit taskinfo_exit(void)
 
 module_init(taskinfo_init);
 module_exit(taskinfo_exit);
-
-MODULE_LICENSE("GPL");
