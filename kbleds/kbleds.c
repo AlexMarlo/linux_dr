@@ -12,8 +12,12 @@ MODULE_AUTHOR("Mitroshkin Alexander aka xanm!");
 MODULE_LICENSE("Dual BSD/GPL");
 
 struct timer_list my_timer;
+struct tty_struct *my_tty;
 struct tty_driver *my_driver;
 char kbledstatus = 0;
+int result;
+
+//void * ioctl;
 
 #define BLINK_DELAY HZ/5
 #define ALL_LEDS_ON 0x07
@@ -23,14 +27,16 @@ static void my_timer_func(unsigned long ptr)
 {
 	int *pstatus =(int *)ptr;
 	printk(KERN_INFO "kbleds: my_timer_func(%i) \n", *pstatus);
-return;
 
 	if(*pstatus == ALL_LEDS_ON)
 		*pstatus = RESTORE_LEDS;
 	else
 		*pstatus = ALL_LEDS_ON;
 
-	(my_driver->ops->ioctl) (vc_cons[fg_console].d->port.tty, /*NULL,*/ KDSETLED, *pstatus);
+	printk(KERN_INFO "kbleds: ioctl %i \n", my_driver->ops->ioctl);
+return;	
+	//(my_driver->ops->ioctl) (vc_cons[fg_console].d->port.tty, NULL, KDSETLED, *pstatus);
+	//(my_driver->ops->ioctl) (my_tty, NULL, KDSETLED, RESTORE_LEDS);
 
 	my_timer.expires = jiffies + BLINK_DELAY;
 	add_timer(&my_timer);
@@ -51,7 +57,8 @@ static int kbleds_init( void)
 	}
 	printk(KERN_INFO "kbleds: finishing scan consoles!\n");
 	
-	my_driver = vc_cons[fg_console].d->port.tty->driver;
+	my_tty = vc_cons[fg_console].d->port.tty;
+	my_driver = my_tty->driver;
 	printk(KERN_INFO "kbleds: tty driver magic %x\n", my_driver->magic);
 
 	init_timer(&my_timer);
@@ -67,7 +74,7 @@ static void __exit kbleds_cleanup(void)
 	printk(KERN_INFO  "kbleds: unloading!\n");
 
 	del_timer(&my_timer);
-	(my_driver->ops->ioctl) (vc_cons[fg_console].d->port.tty, /*NULL,*/ KDSETLED, RESTORE_LEDS);
+	(my_driver->ops->ioctl) (my_tty, NULL, KDSETLED, RESTORE_LEDS);
 }
 
 module_init(kbleds_init);
