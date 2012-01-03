@@ -1,1 +1,0 @@
-cmd_/home/xanm/Desktop/linux_dr/print/print.ko := ld -r -m elf_i386 -T /usr/src/linux-headers-2.6.38-8-generic/scripts/module-common.lds --build-id  -o /home/xanm/Desktop/linux_dr/print/print.ko /home/xanm/Desktop/linux_dr/print/print.o /home/xanm/Desktop/linux_dr/print/print.mod.o
